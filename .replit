@@ -17,3 +17,6 @@ deploymentTarget = "cloudrun"
 [[ports]]
 localPort = 8501
 externalPort = 80
+
+[env]
+PYTHONPATH = "$REPL_HOME/.pythonlibs/lib/python3.10/site-packages:$PYTHONPATH"
