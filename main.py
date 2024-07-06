@@ -14,6 +14,7 @@ st.header("Upload an Image or Use Live Camera to Identify Fish")
 
 # Image Upload
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png"])
+st.write(uploaded_file)
 
 # Live Camera Input
 use_camera = st.checkbox("Use live camera")
@@ -77,7 +78,7 @@ def identify_fish_and_suggest_recipe(image):
 
         (response.json()['choices'][0]['message']['content'])
 
-    file_path = '/content/portraitt.png'
+    file_path = 'uploaded_file/'
     vision_file(file_path)
 
     fish_info = response.choices[0].message.content
