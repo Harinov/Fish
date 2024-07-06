@@ -37,7 +37,7 @@ def identify_fish_and_suggest_recipe(image):
     img_bytes = img_bytes.getvalue()
 
     # Call OpenAI API for fish identification
-    response = openai.Completion.create(
+    response = client.chat.completions.create(
         engine="text-davinci-003",
         prompt=f"Identify the type of fish in the provided image and suggest a suitable recipe.",
         max_tokens=150
