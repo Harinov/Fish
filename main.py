@@ -33,6 +33,12 @@ if uploaded_file or picture:
 
     st.image(img, caption="Uploaded/Captured Image", use_column_width=True)
 
+def convert_image_to_png(image):
+    image = image.convert("RGBA")
+    png_image = io.BytesIO()
+    image.save(png_image, format="PNG")
+    png_image.seek(0)
+    return png_image
 
 def identify_fish_and_suggest_recipe(image):
     # Convert image to bytes
@@ -40,6 +46,7 @@ def identify_fish_and_suggest_recipe(image):
     image.save(img_bytes, format='JPEG')
     img_bytes = img_bytes.getvalue()
 
+    
     def encode_image(file_path):
         with open(file_path, 'rb') as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
@@ -78,8 +85,6 @@ def identify_fish_and_suggest_recipe(image):
 
         (response.json()['choices'][0]['message']['content'])
 
-    vision_file(uploaded_file)
-
     fish_info = response.choices[0].message.content
     return fish_info
 
@@ -90,9 +95,3 @@ if uploaded_file or picture:
         st.success(f"Fish Information: {fish_info}")
 
 
-def convert_image_to_png(image):
-    image = image.convert("RGBA")
-    png_image = io.BytesIO()
-    image.save(png_image, format="PNG")
-    png_image.seek(0)
-    return png_image
