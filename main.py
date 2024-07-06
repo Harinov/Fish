@@ -38,12 +38,17 @@ def identify_fish_and_suggest_recipe(image):
 
     # Call OpenAI API for fish identification
     response = client.chat.completions.create(
-        engine="text-davinci-003",
-        prompt=f"Identify the type of fish in the provided image and suggest a suitable recipe.",
-        max_tokens=150
-    )
+      model="gpt-3.5-turbo",
+      messages=[
+        {"role": "system", "content": "fish name."},
+        {"role": "user", "content": "fish's description"},
+        {"role": "assistant", "content": "fish recipe"}
+      ]
+    ,
+    max_tokens=150
+        )
 
-    fish_info = response.choices[0].text.strip()
+    fish_info = response.choices[0].message.content
     return fish_info
 
 if uploaded_file or picture:
