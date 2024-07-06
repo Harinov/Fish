@@ -88,3 +88,11 @@ if uploaded_file or picture:
     with st.spinner("Identifying fish and fetching recipe..."):
         fish_info = identify_fish_and_suggest_recipe(img)
         st.success(f"Fish Information: {fish_info}")
+
+
+def convert_image_to_png(image):
+    image = image.convert("RGBA")
+    png_image = io.BytesIO()
+    image.save(png_image, format="PNG")
+    png_image.seek(0)
+    return png_image
