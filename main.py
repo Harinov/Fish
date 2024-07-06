@@ -1,111 +1,55 @@
 import streamlit as st
+from openai import OpenAI
 from PIL import Image
 import requests
-import base64
+import io
 
-# Configure API key
-GOOGLE_API_KEY = st.secrets['GOOGLE_API_KEY']
+client = OpenAI(api_key=st.secrets['OPENAI_SECRET_KEY'])
 
-# Function to call Google Vision API
-def identify_fish(image):
-    api_key = GOOGLE_API_KEY
-    endpoint = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
+st.title("Fish Identifier and Recipe Suggester")
 
-    # Convert image to base64
-    image_content = base64.b64encode(image.read()).decode()
+st.header("Upload an Image or Use Live Camera to Identify Fish")
 
-    headers = {
-        "Content-Type": "application/json"
-    }
+# Image Upload
+uploaded_file = st.file_uploader("Choose an image", type="jpg/png")
 
-    payload = {
-        "requests": [{
-            "image": {
-                "content": image_content
-            },
-            "features": [{
-                "type": "LABEL_DETECTION",
-                "maxResults": 1
-            }]
-        }]
-    }
+# Live Camera Input
+use_camera = st.checkbox("Use live camera")
 
-    response = requests.post(endpoint, headers=headers, json=payload)
+if use_camera:
+    picture = st.camera_input("Take a picture")
 
-    if response.status_code != 200:
-        st.error(f"Request to Google Vision API failed with status code {response.status_code}")
-        return None
+# Display uploaded image or captured picture
+if uploaded_file or picture:
+    if uploaded_file:
+        img = Image.open(uploaded_file)
+    else:
+        img = Image.open(io.BytesIO(picture.getvalue()))
 
-    result = response.json()
+    st.image(img, caption="Uploaded/Captured Image", use_column_width=True)
 
-    if "error" in result:
-        st.error(f"Error from Google Vision API: {result['error']['message']}")
-        return None
+def identify_fish_and_suggest_recipe(image):
+  # For simplicity, using OpenAI GPT-4 for text-based fish identification and recipe suggestion
+  # In a real-world scenario, you would use a custom-trained model for image recognition
 
-    # Process the result to extract fish type and recipe
-    label_annotations = result['responses'][0].get('labelAnnotations', [])
-    if not label_annotations:
-        st.error("No labels detected in the image.")
-        return None
+  # Convert image to bytes
+  img_bytes = io.BytesIO()
+  image.save(img_bytes, format='jpg/png')
+  img_bytes = img_bytes.getvalue()
 
-    fish_name = label_annotations[0]['description']
-    recipe = fetch_recipe_for_fish(fish_name)  # Replace with actual logic to fetch recipe
+  # Call OpenAI API for fish identification
+  response = openai.Completion.create(
+      engine="text-davinci-003",
+      prompt=f"Identify the type of fish in the provided image and suggest a suitable recipe.",
+      max_tokens=150
+  )
 
-    return {
-        'fish_name': fish_name,
-        'description': f'A delicious {fish_name}.',
-        'recipe': recipe
-    }
+  fish_info = response.choices[0].text.strip()
+  return fish_info
 
-# Function to fetch recipe for the fish
-def fetch_recipe_for_fish(fish_name):
-    # Placeholder for fetching recipe based on fish name
-    # Replace with actual recipe fetching logic
-    return f"Example Recipe for {fish_name}"
+if uploaded_file or picture:
+  with st.spinner("Identifying fish and fetching recipe..."):
+      fish_info = identify_fish_and_suggest_recipe(img)
+      st.success(f"Fish Information: {fish_info}")
+    
 
-# Function to handle live camera input (reuses the identify_fish function)
-def identify_fish_from_camera(image):
-    return identify_fish(image)
-
-# Streamlit interface
-st.title("Fish Identifier and Recipe Suggestion")
-
-st.write("""
-    Upload an image of the fish or use your live camera to identify the fish and get recipe suggestions.
-""")
-
-# Upload an image
-uploaded_image = st.file_uploader("Upload an image of the fish", type=["jpg", "jpeg", "png"])
-
-if uploaded_image is not None:
-    image = Image.open(uploaded_image)
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
-    st.write("")
-    st.write("Identifying...")
-
-    # Call the identify_fish function
-    result = identify_fish(uploaded_image)
-
-    if result:
-        st.write(f"*Fish Name:* {result['fish_name']}")
-        st.write(f"*Description:* {result['description']}")
-        st.write(f"*Recipe:* {result['recipe']}")
-
-# Use live camera
-st.write("Or use your live camera to identify the fish.")
-
-camera_image = st.camera_input("Take a picture")
-
-if camera_image is not None:
-    image = Image.open(camera_image)
-    st.image(image, caption='Captured Image.', use_column_width=True)
-    st.write("")
-    st.write("Identifying...")
-
-    # Call the identify_fish_from_camera function
-    result = identify_fish_from_camera(camera_image)
-
-    if result:
-        st.write(f"*Fish Name:* {result['fish_name']}")
-        st.write(f"*Description:* {result['description']}")
-        st.write(f"*Recipe:* {result['recipe']}")
