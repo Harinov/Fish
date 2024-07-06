@@ -78,8 +78,7 @@ def identify_fish_and_suggest_recipe(image):
 
         (response.json()['choices'][0]['message']['content'])
 
-    file_path = 'uploaded_file/'
-    vision_file(file_path)
+    vision_file(uploaded_file)
 
     fish_info = response.choices[0].message.content
     return fish_info
